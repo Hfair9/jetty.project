@@ -13,6 +13,7 @@
 
 package org.eclipse.jetty.websocket.tests.client;
 
+import java.io.EOFException;
 import java.net.URI;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -22,6 +23,7 @@ import org.eclipse.jetty.client.Request;
 import org.eclipse.jetty.client.Response;
 import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.io.Content;
+import org.eclipse.jetty.io.EofException;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.ContextHandler;
@@ -113,6 +115,50 @@ public class ClientResponseTest
         assertThat(t, instanceOf(ExecutionException.class));
         assertThat(t.getCause(), instanceOf(UpgradeException.class));
         assertThat(t.getCause().getMessage(), containsString("Failed to upgrade to websocket: Unexpected HTTP Response Status Code: 418"));
+
+        Response response = responseFuture.get(5, TimeUnit.SECONDS);
+        String content = contentFuture.get(5, TimeUnit.SECONDS);
+        assertThat(response.getStatus(), equalTo(HttpStatus.IM_A_TEAPOT_418));
+        assertThat(response.getHeaders().get("specialHeader"), equalTo("value123"));
+        assertThat(content, equalTo("failed by test"));
+    }
+
+    @Test
+    public void testServerAbort() throws Exception
+    {
+        before((req, resp, cb) ->
+        {
+            req.getConnectionMetaData().getConnection().getEndPoint().close();
+            cb.failed(new EofException());
+            return null;
+        });
+
+        EchoSocket clientEndpoint = new EchoSocket();
+        URI uri = URI.create("ws://localhost:" + _connector.getLocalPort());
+        ClientUpgradeRequest upgradeRequest = new ClientUpgradeRequest();
+
+        CompletableFuture<Response> responseFuture = new CompletableFuture<>();
+        CompletableFuture<String> contentFuture = new CompletableFuture<>();
+        JettyUpgradeListener upgradeListener = new JettyUpgradeListener()
+        {
+            @Override
+            public void onHandshakeRequest(Request request)
+            {
+                request.onResponseContentSource((resp, source) ->
+                    assertDoesNotThrow(() -> contentFuture.complete(IO.toString(Content.Source.asInputStream(source)))));
+            }
+
+            @Override
+            public void onHandshakeResponse(Request request, Response response)
+            {
+                responseFuture.complete(response);
+            }
+        };
+
+        Throwable t = assertThrows(Throwable.class, () ->
+            _client.connect(clientEndpoint, uri, upgradeRequest, upgradeListener).get(5, TimeUnit.SECONDS));
+        assertThat(t, instanceOf(ExecutionException.class));
+        assertThat(t.getCause(), instanceOf(EOFException.class));
 
         Response response = responseFuture.get(5, TimeUnit.SECONDS);
         String content = contentFuture.get(5, TimeUnit.SECONDS);
