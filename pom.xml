@@ -33,7 +33,7 @@
     <mina.core.version>2.2.3</mina.core.version>
     <asm.version>9.6</asm.version>
     <awaitility.version>4.2.0</awaitility.version>
-    <bndlib.version>6.3.1</bndlib.version>
+    <bndlib.version>6.4.1</bndlib.version>
     <build-support.version>1.5</build-support.version>
     <checkstyle.version>10.3.4</checkstyle.version>
     <commons-codec.version>1.16.0</commons-codec.version>
@@ -299,10 +299,10 @@
                   <version>[11,)</version>
                   <message>[ERROR] OLD JDK [${java.version}] in use. Jetty ${project.version} requires JDK 11 or newer</message>
                 </requireJavaVersion>
-                <versionTxtRule implementation="org.eclipse.jetty.toolchain.enforcer.rules.VersionTxtRule" />
-                <versionOsgiRule implementation="org.eclipse.jetty.toolchain.enforcer.rules.RequireOsgiCompatibleVersionRule" />
-                <versionRedhatRule implementation="org.eclipse.jetty.toolchain.enforcer.rules.RequireRedhatCompatibleVersionRule" />
-                <versionDebianRule implementation="org.eclipse.jetty.toolchain.enforcer.rules.RequireDebianCompatibleVersionRule" />
+                <versionTxtRule implementation="org.eclipse.jetty.toolchain.enforcer.rules.VersionTxtRule"/>
+                <versionOsgiRule implementation="org.eclipse.jetty.toolchain.enforcer.rules.RequireOsgiCompatibleVersionRule"/>
+                <versionRedhatRule implementation="org.eclipse.jetty.toolchain.enforcer.rules.RequireRedhatCompatibleVersionRule"/>
+                <versionDebianRule implementation="org.eclipse.jetty.toolchain.enforcer.rules.RequireDebianCompatibleVersionRule"/>
                 <requireUpperBoundDeps/>
               </rules>
             </configuration>
@@ -2274,7 +2274,7 @@
         <spotbugs.effort>Default</spotbugs.effort>
         <spotbugs.skip>false</spotbugs.skip>
         <spotbugs.onlyAnalyze>org.eclipse.jetty.*</spotbugs.onlyAnalyze>
-        <maven.repo.uri></maven.repo.uri>
+        <maven.repo.uri/>
       </properties>
       <modules>
         <module>javadoc</module>
